@@ -1,0 +1,35 @@
+version: "3"
+services:
+  db:
+    image: postgres:12-alpine
+    volumes:
+      - ./postgres-conf/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./postgres-conf/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+      - ./pg-datadir:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    networks:
+      documizenet:
+  documize:
+    image: alpine:latest
+    depends_on:
+      - db
+    ports:
+      - 5001:5001
+    volumes:
+      - ./bin:/root/bin
+    environment:
+      DOCUMIZEPORT: 5001
+      DOCUMIZEDB: "host=db port=5432 sslmode=disable user=postgres password=mysecretpassword dbname=postgres"
+      DOCUMIZEDBTYPE: postgresql
+      DOCUMIZESALT: bWVf51da82a93XF9f
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - "/root/bin/init.sh"
+    networks:
+      documizenet:
+networks:
+  documizenet:
